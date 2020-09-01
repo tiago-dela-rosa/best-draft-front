@@ -289,6 +289,7 @@ export default {
       endpoints: {
         tierlist: '/tierlist/e1b16694-805f-4919-a80d-a09b50afd81a'
       },
+      preferences: '',
       rankings: {
         suggestions: [],
         tierlist: ''
@@ -429,7 +430,17 @@ export default {
           this.handleToken()
         )
         .then((response) => {
-          return response.data.data.teammate
+          return response.data.data
+        })
+    },
+    servicePreference() {
+      return this.$axios
+        .$get(
+          '/preference/7abf2e45-919f-4778-ba92-a90432ee980c',
+          this.handleToken()
+        )
+        .then((response) => {
+          return response.data[0].data
         })
     },
     prevPicks(isOpposingTeam = true) {
@@ -526,6 +537,18 @@ export default {
         })
       }
     },
+    rulePreservePreferencePick(weigth) {
+      this.ruleOrderFirstPickBan().then(() => {
+        this.debugRules('-> rulePreservePreferencePick')
+        this.servicePreference().then((pref) => {
+          _.mapValues(this.configuration.rankings.suggestions, (rank) => {
+            return Object.assign(rank, {
+              value: rank.value - pref[rank.id].value * weigth
+            })
+          })
+        })
+      })
+    },
     ruleTeammatePick(weigth) {
       if (
         this.currentPhase[0].type === 'pick' &&
@@ -545,6 +568,16 @@ export default {
         })
       }
     },
+    ruleOrderFirstPickBan() {
+      return new Promise((resolve, reject) => {
+        if (
+          this.currentPhase[0].type === 'ban' &&
+          this.configuration.order === 'first'
+        ) {
+          resolve()
+        }
+      })
+    },
     draft() {
       this.setTierlist()
       this.ruleTierlist()
@@ -552,6 +585,7 @@ export default {
         .then(this.ruleRolePick(2.75))
         .then(this.ruleMatchupPick(2.2))
         .then(this.ruleTeammatePick(1.5))
+        .then(this.rulePreservePreferencePick(1.5))
         .then(this.debugRules('--- end ---'))
     }
   }
