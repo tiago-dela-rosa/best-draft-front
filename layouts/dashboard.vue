@@ -83,6 +83,12 @@ export default {
         },
         {
           id: 4,
+          title: 'Preferences',
+          icon: 'mdi-star-circle',
+          url: '/dashboard/preferences'
+        },
+        {
+          id: 5,
           title: 'Logout',
           icon: 'mdi-logout',
           url: '/login'
