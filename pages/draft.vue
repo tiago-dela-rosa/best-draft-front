@@ -93,7 +93,11 @@
             return-object
           >
           </v-autocomplete>
-          <v-switch class="userPickSwitch" label="Play this pick"></v-switch>
+          <v-switch
+            v-model="picks.pickStages[pick.id - 1].playerSelect"
+            class="userPickSwitch"
+            label="Play this pick"
+          ></v-switch>
         </v-card>
       </v-col>
 
@@ -293,6 +297,13 @@ export default {
       rankings: {
         suggestions: [],
         tierlist: ''
+      },
+      weigths: {
+        rulePreserveFirstPick: 0.3,
+        rulePreferencePick: 0.3,
+        ruleRolePick: 1.75,
+        ruleMatchupPick: 1.2,
+        ruleTeammatePick: 0.5
       }
     },
     picks: {
@@ -467,6 +478,19 @@ export default {
       })
       return prevPicks
     },
+    roleDiff() {
+      const teamRoles = []
+      const opposingTeamRoles = []
+      this.picks.pickStages.map((stage) => {
+        if (this.currentPhase[0].team === stage.team) {
+          teamRoles.push(stage.roleSelected)
+        } else {
+          opposingTeamRoles.push(stage.roleSelected)
+        }
+      })
+      const difference = teamRoles.filter((x) => !opposingTeamRoles.includes(x))
+      return difference
+    },
     debugRules(message, obj = '') {
       // eslint-disable-next-line no-console
       console.debug(message, obj)
@@ -523,31 +547,8 @@ export default {
         this.currentPhase[0].sequence > 7
       ) {
         this.debugRules('-> ruleMatchupPick')
-
-        const prevPicks = this.prevPicks()
-
-        prevPicks.map((prevPick) => {
-          this.serviceMatchup(prevPick.id).then((matchup) => {
-            _.mapValues(this.configuration.rankings.suggestions, (rank) => {
-              return Object.assign(rank, {
-                value: rank.value + (6 - matchup[rank.id].value) * weigth
-              })
-            })
-          })
-        })
+        this.logicMatchups(weigth)
       }
-    },
-    rulePreservePreferencePick(weigth) {
-      this.ruleOrderFirstPickBan().then(() => {
-        this.debugRules('-> rulePreservePreferencePick')
-        this.servicePreference().then((pref) => {
-          _.mapValues(this.configuration.rankings.suggestions, (rank) => {
-            return Object.assign(rank, {
-              value: rank.value - pref[rank.id].value * weigth
-            })
-          })
-        })
-      })
     },
     ruleTeammatePick(weigth) {
       if (
@@ -558,35 +559,130 @@ export default {
         const prevPicks = this.prevPicks(false)
 
         prevPicks.map((prevPick) => {
-          this.serviceTeammate(prevPick.id).then((matchup) => {
+          this.serviceTeammate(prevPick.id).then((teammate) => {
+            console.log(teammate)
             _.mapValues(this.configuration.rankings.suggestions, (rank) => {
               return Object.assign(rank, {
-                value: rank.value + matchup[rank.id].value * weigth
+                value: rank.value + teammate.teammate[rank.id].value * weigth
               })
             })
           })
         })
       }
     },
-    ruleOrderFirstPickBan() {
-      return new Promise((resolve, reject) => {
-        if (
-          this.currentPhase[0].type === 'ban' &&
-          this.configuration.order === 'first'
-        ) {
-          resolve()
-        }
+    logicPreferencePick(weigth, isPositive = true) {
+      this.servicePreference().then((pref) => {
+        _.mapValues(this.configuration.rankings.suggestions, (rank) => {
+          const operation = isPositive
+            ? rank.value + pref[rank.id].value * weigth
+            : rank.value - pref[rank.id].value * weigth
+
+          return Object.assign(rank, {
+            value: operation
+          })
+        })
       })
     },
+    logicMatchups(weigth, isPositive = true, isOpposingTeam = true) {
+      const prevPicks = this.prevPicks(isOpposingTeam)
+
+      prevPicks.map((prevPick) => {
+        this.serviceMatchup(prevPick.id).then((matchup) => {
+          _.mapValues(this.configuration.rankings.suggestions, (rank) => {
+            const operation = isPositive
+              ? rank.value + (6 - matchup[rank.id].value) * weigth
+              : rank.value - (6 - matchup[rank.id].value) * weigth
+            return Object.assign(rank, {
+              value: operation
+            })
+          })
+        })
+      })
+    },
+    logicRoleDiffBan() {
+      this.debugRules('-> logicRoleDiffBan')
+      const rolesDiff = this.roleDiff()
+      if (rolesDiff.length > 0) {
+        _.mapValues(this.configuration.rankings.suggestions, (rank) => {
+          rolesDiff.map((role) => {
+            return Object.assign(rank, {
+              value: rank.value + this.gods[rank.id - 1].role[role] * 1.5
+            })
+          })
+        })
+      }
+    },
+    conditionFirstPickBan() {
+      let isValid = false
+      isValid = !!(
+        this.currentPhase[0].type === 'ban' &&
+        this.configuration.order === 'first' &&
+        this.currentPhase[0].team === 'order' &&
+        this.currentPhase[0].sequence <= 6
+      )
+      return isValid
+    },
+    conditionFirstPickPlayer() {
+      let isValid = false
+      isValid = !!this.picks.pickStages[6].playerSelect
+      return isValid
+    },
+    conditionCurrentPlayerPick() {
+      let isValid = false
+      isValid = !!(
+        this.currentPhase[0].type === 'pick' &&
+        this.currentPhase[0].playerSelect
+      )
+      return isValid
+    },
+    conditionSecondBanPhase() {
+      let isValid = false
+      isValid = !!(
+        this.currentPhase[0].type === 'ban' &&
+        this.currentPhase[0].sequence >= 6
+      )
+      return isValid
+    },
+    rulePreservePreferencePick(weigth) {
+      const conditions = [
+        this.conditionFirstPickBan(),
+        this.conditionFirstPickPlayer()
+      ]
+      if (!conditions.includes(false)) {
+        this.debugRules('-> rulePreferencePick()')
+        this.logicPreferencePick(weigth, false)
+      }
+    },
+    rulePreferencePick(weigth) {
+      if (this.conditionCurrentPlayerPick()) {
+        this.debugRules('-> rulePreferencePick')
+        this.logicPreferencePick(weigth, true)
+      }
+    },
+    ruleSecondBanPhase(weigth) {
+      if (this.conditionSecondBanPhase()) {
+        this.roleDiff()
+        this.logicRoleDiffBan()
+        this.logicMatchups(weigth, true, false)
+      }
+    },
     draft() {
+      this.debugRules('----- BEGIN -----')
       this.setTierlist()
       this.ruleTierlist()
-        .then(this.rulePreserveFirstPick(1.75))
-        .then(this.ruleRolePick(2.75))
-        .then(this.ruleMatchupPick(2.2))
-        .then(this.ruleTeammatePick(1.5))
-        .then(this.rulePreservePreferencePick(1.5))
-        .then(this.debugRules('--- end ---'))
+        .then(
+          this.rulePreservePreferencePick(
+            this.configuration.weigths.rulePreferencePick
+          )
+        )
+        .then(
+          this.rulePreferencePick(this.configuration.weigths.rulePreferencePick)
+        )
+        .then(this.ruleRolePick(1.75))
+        .then(this.ruleMatchupPick(1.2))
+        .then(this.ruleTeammatePick(0.5))
+        .then(this.ruleSecondBanPhase(1.2))
+        .then(this.debugRules('----- END -----'))
     }
   }
 }
