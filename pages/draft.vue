@@ -1,14 +1,49 @@
 <template dark>
   <v-container fluid>
-    <v-dialog v-model="configuration.orderPickModal" persistent max-width="290">
+    <v-dialog v-model="configuration.orderPickModal" persistent max-width="590">
       <v-card>
-        <v-card-title class="headline grey lighten-2" primary-title>
-          Lets Draft!
+        <v-card-title class="headline grey lighten-2 mb-5" primary-title>
+          Lets Draft {{ personal.user.name }}!
         </v-card-title>
         <v-card-text>
-          <br />To help the system make the right choice select what team goes
-          first and select the position and role you gonna play in this draft
+          <b>Public or personal config?</b>
+          <v-radio-group v-model="configuration.source" row>
+            <v-radio label="Public" value="public"></v-radio>
+            <v-radio
+              label="Personal"
+              :disabled="!personal.isSigning"
+              value="personal"
+            ></v-radio>
+          </v-radio-group>
+
+          <div v-if="configuration.source === 'personal'">
+            <v-select
+              v-model="tierlistUid"
+              :items="personal.tierlists"
+              item-text="text"
+              item-value="value"
+              label="Tierlist config"
+              outlined
+            ></v-select>
+            <v-select
+              v-model="matchupUid"
+              :items="personal.matchups"
+              item-text="text"
+              item-value="value"
+              label="Matchup config"
+              outlined
+            ></v-select>
+            <v-select
+              v-model="teammateUid"
+              :items="personal.teammates"
+              item-text="text"
+              item-value="value"
+              label="Teammate config"
+              outlined
+            ></v-select>
+          </div>
         </v-card-text>
+
         <v-card-actions>
           <v-btn color="blue" text @click="teamOrder('first')">
             First pick
@@ -71,12 +106,10 @@
                   <img :src="`/gods/icons/${data.item.slug}.jpg`" />
                 </v-list-item-avatar>
                 <v-list-item-content>
-                  <v-list-item-title
-                    v-html="data.item.name"
-                  ></v-list-item-title>
-                  <v-list-item-subtitle
-                    v-html="data.item.group"
-                  ></v-list-item-subtitle>
+                  <v-list-item-title> {{ data.item.name }}</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    data.item.group
+                  }}</v-list-item-subtitle>
                 </v-list-item-content>
               </template>
             </template>
@@ -135,12 +168,10 @@
                     <img :src="`/gods/icons/${data.item.slug}.jpg`" />
                   </v-list-item-avatar>
                   <v-list-item-content>
-                    <v-list-item-title
-                      v-html="data.item.name"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-html="data.item.group"
-                    ></v-list-item-subtitle>
+                    <v-list-item-title>{{ data.item.name }}</v-list-item-title>
+                    <v-list-item-subtitle>{{
+                      data.item.group
+                    }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </template>
               </template>
@@ -251,12 +282,10 @@
                   <img :src="`/gods/icons/${data.item.slug}.jpg`" />
                 </v-list-item-avatar>
                 <v-list-item-content>
-                  <v-list-item-title
-                    v-html="data.item.name"
-                  ></v-list-item-title>
-                  <v-list-item-subtitle
-                    v-html="data.item.group"
-                  ></v-list-item-subtitle>
+                  <v-list-item-title>{{ data.item.name }}</v-list-item-title>
+                  <v-list-item-subtitle>{{
+                    data.item.group
+                  }}</v-list-item-subtitle>
                 </v-list-item-content>
               </template>
             </template>
@@ -287,12 +316,24 @@ import { stages } from '../assets/draft'
 export default {
   data: () => ({
     gods: [],
+    personal: {
+      isSigning: false,
+      user: '',
+      tierlists: [],
+      matchups: [],
+      teammates: [],
+      matchupUid: '',
+      teammateUid: ''
+    },
     configuration: {
+      endpoints: {
+        tierlist: 'public/tierlist',
+        matchup: 'public/matchup',
+        teammate: 'public/teammate'
+      },
+      source: 'public',
       orderPickModal: true,
       order: '',
-      endpoints: {
-        tierlist: '/tierlist/e1b16694-805f-4919-a80d-a09b50afd81a'
-      },
       preferences: '',
       rankings: {
         suggestions: [],
@@ -316,6 +357,30 @@ export default {
     }
   }),
   computed: {
+    tierlistUid: {
+      get() {
+        return this.getStorageConfig().personal.tierlist || null
+      },
+      set(value) {
+        this.value = this.saveStorageConfig('tierlist', value)
+      }
+    },
+    matchupUid: {
+      get() {
+        return this.getStorageConfig().personal.matchup || null
+      },
+      set(value) {
+        this.value = this.saveStorageConfig('matchup', value)
+      }
+    },
+    teammateUid: {
+      get() {
+        return this.getStorageConfig().personal.teammate || null
+      },
+      set(value) {
+        this.value = this.saveStorageConfig('teammate', value)
+      }
+    },
     chaosTeam() {
       return this.picks.pickStages.filter((value) => {
         return value.team === 'chaos' && value.type === 'pick'
@@ -376,16 +441,85 @@ export default {
   },
   watch: {},
   created() {
+    this.createStorageConfig()
+    this.verifyUser()
     this.getGods()
-    this.setTierlist()
   },
   methods: {
+    getStorageConfig() {
+      return JSON.parse(localStorage.getItem('initialConfig'))
+    },
+    createStorageConfig() {
+      if (!this.getStorageConfig()) {
+        localStorage.setItem(
+          'initialConfig',
+          JSON.stringify({
+            public: {},
+            personal: { tierlist: null, matchup: null, teammate: null }
+          })
+        )
+      }
+    },
+    saveStorageConfig(key, uid) {
+      const storage = this.getStorageConfig()
+      storage.personal[key] = uid
+      localStorage.setItem('initialConfig', JSON.stringify(storage))
+    },
+    verifyUser() {
+      if (localStorage.getItem('user')) {
+        this.personal.isSigning = true
+        this.personal.user = JSON.parse(localStorage.getItem('user')).user
+        this.configuration.source = 'personal'
+        this.serviceTierlistByUser()
+        this.serviceMatchupByUser()
+        this.serviceTeammateByUser()
+      }
+    },
     getGods() {
       return this.$axios.$get('/gods').then((data) => {
         this.gods = Object.values(data)
       })
     },
+    serviceTierlistByUser() {
+      return this.$axios
+        .$get(`tierlist/user/${this.personal.user.uid}`, this.handleToken())
+        .then((tierlist) => {
+          const dropdown = tierlist.data.map((t) => {
+            return { text: t.name, value: t.uid }
+          })
+          this.personal.tierlists = dropdown
+        })
+    },
+    serviceMatchupByUser() {
+      return this.$axios
+        .$get(`matchup/user/${this.personal.user.uid}`, this.handleToken())
+        .then((matchup) => {
+          const dropdown = matchup.data.map((m) => {
+            return { text: m.name, value: m.uid }
+          })
+          this.personal.matchups = dropdown
+        })
+    },
+    serviceTeammateByUser() {
+      return this.$axios
+        .$get(`teammate/user/${this.personal.user.uid}`, this.handleToken())
+        .then((teammate) => {
+          const dropdown = teammate.data.map((t) => {
+            return { text: t.name, value: t.uid }
+          })
+          this.personal.teammates = dropdown
+        })
+    },
+    setPersonalEndpoints() {
+      if (this.configuration.source === 'personal') {
+        this.configuration.endpoints.tierlist = `tierlist/${this.tierlistUid}`
+        this.configuration.endpoints.matchup = `matchup/${this.matchupUid}`
+        this.configuration.endpoints.teammate = `teammate/${this.teammateUid}`
+      }
+    },
     teamOrder(order) {
+      this.setPersonalEndpoints()
+      this.setTierlist()
       this.configuration.order = order
       this.configuration.orderPickModal = false
       if (order === 'first') {
@@ -395,6 +529,8 @@ export default {
       }
     },
     handleToken() {
+      if (this.configuration.source === 'public') return false
+
       const { token } = JSON.parse(localStorage.getItem('user'))
       return {
         headers: {
@@ -416,10 +552,7 @@ export default {
     },
     setTierlist() {
       return this.$axios
-        .$get(
-          '/tierlist/e1b16694-805f-4919-a80d-a09b50afd81a',
-          this.handleToken()
-        )
+        .$get(this.configuration.endpoints.tierlist, this.handleToken())
         .then((response) => {
           this.configuration.rankings.tierlist = response.data[0].data
         })
@@ -427,7 +560,7 @@ export default {
     serviceMatchup(id) {
       return this.$axios
         .$get(
-          `http://localhost:8888/api/v1/matchup/78a9ee1d-6ce5-4a43-9a82-a190daccac4a?god=${id}`,
+          `${this.configuration.endpoints.matchup}?god=${id}`,
           this.handleToken()
         )
         .then((response) => {
@@ -437,7 +570,7 @@ export default {
     serviceTeammate(id) {
       return this.$axios
         .$get(
-          `http://localhost:8888/api/v1/teammate/b161afd9-7b65-439f-8af2-8761cd2495e7?god=${id}`,
+          `${this.configuration.endpoints.teammate}?god=${id}`,
           this.handleToken()
         )
         .then((response) => {
@@ -560,7 +693,6 @@ export default {
 
         prevPicks.map((prevPick) => {
           this.serviceTeammate(prevPick.id).then((teammate) => {
-            console.log(teammate)
             _.mapValues(this.configuration.rankings.suggestions, (rank) => {
               return Object.assign(rank, {
                 value: rank.value + teammate.teammate[rank.id].value * weigth
@@ -606,7 +738,7 @@ export default {
         _.mapValues(this.configuration.rankings.suggestions, (rank) => {
           rolesDiff.map((role) => {
             return Object.assign(rank, {
-              value: rank.value + this.gods[rank.id - 1].role[role] * 1.5
+              value: rank.value + this.gods[rank.id - 1].role[role] * 2
             })
           })
         })
@@ -678,10 +810,10 @@ export default {
         .then(
           this.rulePreferencePick(this.configuration.weigths.rulePreferencePick)
         )
-        .then(this.ruleRolePick(1.75))
-        .then(this.ruleMatchupPick(1.2))
-        .then(this.ruleTeammatePick(0.5))
-        .then(this.ruleSecondBanPhase(1.2))
+        .then(this.ruleRolePick(2.25))
+        .then(this.ruleMatchupPick(1.7))
+        .then(this.ruleTeammatePick(1))
+        .then(this.ruleSecondBanPhase(1.7))
         .then(this.debugRules('----- END -----'))
     }
   }
