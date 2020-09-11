@@ -127,6 +127,7 @@
           >
           </v-autocomplete>
           <v-switch
+            v-if="configuration.source === 'personal'"
             v-model="picks.pickStages[pick.id - 1].playerSelect"
             class="userPickSwitch"
             label="Play this pick"
@@ -182,15 +183,21 @@
               <v-btn
                 width="100%"
                 color="grey"
-                :dark="picks.current.order >= 1"
-                :disabled="picks.current.order < 1"
-                @click="picks.current.order--"
+                :dark="picks.current.order !== 1"
+                :disabled="picks.current.order === 1"
+                @click="prev()"
               >
                 <v-icon left>mdi-page-previous</v-icon> Prev</v-btn
               >
             </v-col>
             <v-col cols="6">
-              <v-btn width="100%" dark color="teal" @click="next()">
+              <v-btn
+                width="100%"
+                dark
+                color="teal"
+                :disabled="picks.current.order === 20"
+                @click="next()"
+              >
                 <v-icon left>mdi-page-next</v-icon> Next</v-btn
               >
             </v-col>
@@ -201,29 +208,31 @@
               <v-card class="mt-5">
                 <v-card-title>Suggestions</v-card-title>
                 <v-list id="suggestions" flat>
-                  <div
-                    v-for="(suggestion, index) in draftSuggest"
-                    :key="suggestion.id"
-                    @click="pickSuggest(suggestion)"
-                  >
-                    <v-divider v-show="index > 0"></v-divider>
-                    <v-list-item-group>
-                      <v-list-item>
-                        <v-list-item-avatar>
-                          <v-img
-                            :src="'/gods/icons/' + suggestion.slug + '.jpg'"
-                          ></v-img>
-                        </v-list-item-avatar>
-                        <v-list-item-content>
-                          <v-list-item-title
-                            v-text="suggestion.name"
-                          ></v-list-item-title>
-                        </v-list-item-content>
-                        <v-list-item-icon class="fr">
-                          <big>{{ suggestion.value }}</big>
-                        </v-list-item-icon>
-                      </v-list-item>
-                    </v-list-item-group>
+                  <div v-show="!loadingDraft">
+                    <div
+                      v-for="(suggestion, index) in draftSuggest"
+                      :key="suggestion.id"
+                      @click="pickSuggest(suggestion)"
+                    >
+                      <v-divider v-show="index > 0"></v-divider>
+                      <v-list-item-group>
+                        <v-list-item>
+                          <v-list-item-avatar>
+                            <v-img
+                              :src="'/gods/icons/' + suggestion.slug + '.jpg'"
+                            ></v-img>
+                          </v-list-item-avatar>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              v-text="suggestion.name"
+                            ></v-list-item-title>
+                          </v-list-item-content>
+                          <v-list-item-icon class="fr">
+                            <big>{{ suggestion.value | parseInt }}</big>
+                          </v-list-item-icon>
+                        </v-list-item>
+                      </v-list-item-group>
+                    </div>
                   </div>
                 </v-list>
               </v-card>
@@ -302,7 +311,11 @@
             return-object
           >
           </v-autocomplete>
-          <v-switch class="userPickSwitch" label="Play this pick"></v-switch>
+          <v-switch
+            v-if="configuration.source === 'personal'"
+            class="userPickSwitch"
+            label="Play this pick"
+          ></v-switch>
         </v-card>
       </v-col>
     </v-row>
@@ -314,7 +327,14 @@ import _ from 'lodash'
 import { stages } from '../assets/draft'
 
 export default {
+  filters: {
+    parseInt(value) {
+      if (!value) return ''
+      return value.toFixed(2)
+    }
+  },
   data: () => ({
+    loadingDraft: false,
     gods: [],
     personal: {
       isSigning: false,
@@ -444,8 +464,26 @@ export default {
     this.createStorageConfig()
     this.verifyUser()
     this.getGods()
+    this.listenKeys()
   },
   methods: {
+    listenKeys() {
+      window.addEventListener('keydown', (e) => {
+        if (this.configuration.order) {
+          switch (e.key) {
+            case 'ArrowLeft':
+              this.prev()
+              break
+            case 'ArrowRight':
+              this.next()
+              break
+            case 'Enter':
+              this.draft()
+              break
+          }
+        }
+      })
+    },
     getStorageConfig() {
       return JSON.parse(localStorage.getItem('initialConfig'))
     },
@@ -538,9 +576,16 @@ export default {
         }
       }
     },
+    prev() {
+      if (this.picks.current.order > 1) {
+        this.picks.current.order--
+      }
+    },
     next() {
-      this.picks.current.order++
-      this.configuration.rankings.suggestions = []
+      if (this.picks.current.order < 20) {
+        this.picks.current.order++
+        this.configuration.rankings.suggestions = []
+      }
     },
     pickSuggest(suggest) {
       const pickStage = this.picks.current.order - 1
@@ -800,6 +845,7 @@ export default {
     },
     draft() {
       this.debugRules('----- BEGIN -----')
+      this.loadingDraft = true
       this.setTierlist()
       this.ruleTierlist()
         .then(
@@ -814,6 +860,7 @@ export default {
         .then(this.ruleMatchupPick(1.7))
         .then(this.ruleTeammatePick(1))
         .then(this.ruleSecondBanPhase(1.7))
+        .then(() => (this.loadingDraft = false))
         .then(this.debugRules('----- END -----'))
     }
   }
