@@ -51,7 +51,7 @@ export default {
   axios: {
     baseURL: development
       ? 'http://localhost:8888/api/v1/'
-      : 'http://best-draft.herokuapp.com/api/v1'
+      : 'https://best-draft.herokuapp.com/api/v1'
   },
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
