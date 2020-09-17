@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+const development = process.env.NODE_ENV !== 'production'
 
 export default {
   mode: 'spa',
@@ -48,7 +49,9 @@ export default {
    ** https://github.com/nuxt-community/vuetify-module
    */
   axios: {
-    baseURL: 'http://localhost:8888/api/v1/'
+    baseURL: development
+      ? 'http://localhost:8888/api/v1/'
+      : 'http://best-draft.herokuapp.com/api/v1'
   },
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
