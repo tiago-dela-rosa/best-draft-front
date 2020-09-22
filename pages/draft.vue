@@ -374,6 +374,7 @@
 <script>
 import _ from 'lodash'
 import goTo from 'vuetify/es5/services/goto'
+import { Touch } from 'vuetify/lib/directives'
 import { stages } from '../assets/draft'
 
 export default {
@@ -382,6 +383,9 @@ export default {
       if (!value) return ''
       return value.toFixed(2)
     }
+  },
+  directives: {
+    Touch
   },
   data: () => ({
     toTopButton: false,
