@@ -6,6 +6,13 @@
           Lets Draft {{ personal.user.name }}!
         </v-card-title>
         <v-card-text>
+          <div v-if="$vuetify.breakpoint.name === 'xs'" class="mb-3">
+            <p>
+              Swipe to <b>left</b> and <b>right</b> to go to the <b>next</b> and
+              <b>prev</b> pick
+            </p>
+            <hr />
+          </div>
           <b>Public or personal config?</b>
           <v-radio-group v-model="configuration.source" row>
             <v-radio label="Public" value="public"></v-radio>
@@ -79,7 +86,7 @@
         <!-- order -->
         <v-col
           id="order"
-          class="order d-xs-inline"
+          class="order d-xs-inline mb-2"
           order="2"
           order-sm="1"
           cols="12"
@@ -103,7 +110,6 @@
             :key="pick.id"
             class="mx-auto mb-3"
             :class="{ current: pick.sequence == picks.current.order }"
-            max-width="400"
           >
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].godSelected"
@@ -309,7 +315,6 @@
             :key="pick.id"
             class="mx-auto mb-3"
             :class="{ current: pick.sequence == picks.current.order }"
-            max-width="400"
           >
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].godSelected"
