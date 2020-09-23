@@ -598,6 +598,7 @@ export default {
           const dropdown = tierlist.data.map((t) => {
             return { text: t.name, value: t.uid }
           })
+          dropdown.push({ text: 'Default Tierlist', value: 'public_tierlist' })
           this.personal.tierlists = dropdown
         })
     },
@@ -608,6 +609,7 @@ export default {
           const dropdown = matchup.data.map((m) => {
             return { text: m.name, value: m.uid }
           })
+          dropdown.push({ text: 'Default Matchup', value: 'public_matchup' })
           this.personal.matchups = dropdown
         })
     },
@@ -618,14 +620,23 @@ export default {
           const dropdown = teammate.data.map((t) => {
             return { text: t.name, value: t.uid }
           })
+          dropdown.push({ text: 'Default Teammate', value: 'public_teammate' })
           this.personal.teammates = dropdown
         })
     },
     setPersonalEndpoints() {
       if (this.configuration.source === 'personal') {
-        this.configuration.endpoints.tierlist = `tierlist/${this.tierlistUid}`
-        this.configuration.endpoints.matchup = `matchup/${this.matchupUid}`
-        this.configuration.endpoints.teammate = `teammate/${this.teammateUid}`
+        this.tierlistUid === 'public_tierlist'
+          ? (this.configuration.endpoints.tierlist = '/public/tierlist')
+          : (this.configuration.endpoints.tierlist = `tierlist/${this.tierlistUid}`)
+
+        this.matchupUid === 'public_matchup'
+          ? (this.configuration.endpoints.matchup = '/public/matchup')
+          : (this.configuration.endpoints.matchup = `matchup/${this.matchupUid}`)
+
+        this.teammateUid === 'public_teammate'
+          ? (this.configuration.endpoints.teammate = '/public/teammate')
+          : (this.configuration.endpoints.teammate = `teammate/${this.teammateUid}`)
       }
     },
     teamOrder(order) {
