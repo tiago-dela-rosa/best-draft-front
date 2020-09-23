@@ -49,6 +49,9 @@
         </v-btn>
       </template>
     </v-snackbar>
+    <v-overlay :value="overlay">
+      <v-progress-circular indeterminate size="64"></v-progress-circular>
+    </v-overlay>
   </div>
 </template>
 <script>
@@ -103,7 +106,8 @@ export default {
       text: 'Tierlist created!',
       color: 'teal',
       time: 5000
-    }
+    },
+    overlay: false
   }),
   computed: {
     godsArray() {
@@ -182,6 +186,7 @@ export default {
       )
     },
     async create() {
+      this.overlay = true
       const data = this.handlerPreference()
       const retPreference = await this.createService(data)
       if (retPreference.message === 'success') {
@@ -191,6 +196,7 @@ export default {
         this.dropdownConfigState += 1
         this.clearTierlist()
       }
+      this.overlay = false
     },
     save() {
       if (this.config.statePreference === 'new') {
@@ -211,6 +217,7 @@ export default {
       return await this.$axios(options)
     },
     async update() {
+      this.overlay = true
       const data = this.handlerPreference()
       const retPreference = await this.updateService(data)
       if (retPreference.message === 'success') {
@@ -219,6 +226,7 @@ export default {
         this.config.statePreference = 'dirty'
         this.dropdownConfigState += 1
       }
+      this.overlay = false
     },
     clearTierlist() {
       this.tableRow.a.data = []

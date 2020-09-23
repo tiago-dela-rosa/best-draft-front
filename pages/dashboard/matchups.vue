@@ -132,6 +132,9 @@
         </v-btn>
       </template>
     </v-snackbar>
+    <v-overlay :value="overlay">
+      <v-progress-circular indeterminate size="64"></v-progress-circular>
+    </v-overlay>
   </div>
 </template>
 <script>
@@ -193,12 +196,16 @@ export default {
       text: 'Matchup created!',
       color: 'teal',
       time: 5000
-    }
+    },
+    overlay: false
   }),
   computed: {
     godsArray() {
       return Object.values(this.gods)
     }
+  },
+  created() {
+    this.config.uidSelected = 1
   },
   mounted() {
     this.$axios.$get('/gods').then((data) => {
@@ -260,6 +267,7 @@ export default {
       )
     },
     async create() {
+      this.overlay = true
       const data = this.handlerDataTierlist()
       const ret = await this.createService(this.config.name, data)
       if (ret.message === 'success') {
@@ -269,18 +277,21 @@ export default {
       }
       this.dropdownConfigState += 1
       this.clearTable()
+      this.overlay = false
     },
     async save() {
       if (this.config.uidSelected) {
         if (this.config.uidSelected === 1) {
           this.modalNewConfig = true
         } else {
+          this.overlay = true
           const data = this.handlerDataTierlist()
           const ret = await this.updateService(this.config.name, data)
           if (ret.data.message === 'success') {
             this.snackbar.status = true
             this.snackbar.text = 'Updated!'
           }
+          this.overlay = false
         }
       }
     },
