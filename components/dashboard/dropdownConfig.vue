@@ -1,6 +1,7 @@
 <template>
   <v-select
     v-model="value"
+    auto-select-first="true"
     :items="config.options"
     item-text="name"
     label="Choose a config"
@@ -18,7 +19,7 @@ export default {
     }
   },
   data: () => ({
-    value: '',
+    value: { name: 'New Config', value: 1 },
     endpoint: '',
     config: {
       options: []
