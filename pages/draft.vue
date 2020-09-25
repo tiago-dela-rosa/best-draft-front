@@ -244,7 +244,7 @@
             </v-col>
             <v-col cols="12">
               <v-btn width="100%" dark color="deep-orange" @click="draft()">
-                <v-icon left>mdi-alert-octagram</v-icon> Draft
+                <v-icon left>mdi-lightning-bolt</v-icon> Draft
               </v-btn>
               <div
                 v-show="draftSuggest.length <= 0"

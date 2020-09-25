@@ -2,12 +2,8 @@
   <div>
     <nuxt />
     <v-container fluid>
-      <v-row align="center" justify="center">
-        <v-col cols="12">
-          <h2 class="text-center">sign in to start make your own config</h2>
-        </v-col>
-      </v-row>
-      <v-card class="mx-auto" max-width="344" outlined>
+      <v-card class="mx-auto" max-width="450" flat>
+        <v-card-title>Sign in to start make your own config</v-card-title>
         <v-form ref="form" v-model="valid" lazy-validation>
           <v-container>
             <v-row>
@@ -46,6 +42,7 @@
 </template>
 <script>
 export default {
+  layout: 'website',
   data: () => ({
     valid: false,
     errors: [],
