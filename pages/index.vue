@@ -9,10 +9,23 @@
           </h1>
           <v-card-actions>
             <div class="mx-auto">
-              <v-btn x-large nuxt color="deep-orange" to="/draft">
+              <v-btn
+                x-large
+                nuxt
+                block
+                color="deep-orange"
+                class="mt-5 d-flex"
+                to="/draft"
+              >
                 <v-icon left>mdi-lightning-bolt</v-icon> Start Draft
               </v-btn>
-              <v-btn x-large nuxt color="blue-grey darken-4" to="/login">
+              <v-btn
+                x-large
+                nuxt
+                color="blue-grey darken-4"
+                class="mt-5 d-flex"
+                to="/login"
+              >
                 <v-icon left>mdi-account</v-icon>Login
               </v-btn>
             </div>
