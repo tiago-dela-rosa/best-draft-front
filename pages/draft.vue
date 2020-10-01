@@ -77,10 +77,9 @@
           fixed
           bottom
           right
-          color="green"
-          @click="toTop"
-        >
-          <v-icon>mdi-chevron-up</v-icon>
+          color="deep-orange"
+          @click="draftToTop"
+          ><v-icon>mdi-lightning-bolt</v-icon>
         </v-btn>
 
         <!-- order -->
@@ -113,6 +112,7 @@
           >
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].godSelected"
+              disable-lookup
               placeholder="Select a god"
               :items="gods"
               :disabled="
@@ -149,6 +149,8 @@
             </v-autocomplete>
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].roleSelected"
+              disable-lookup
+              clearable
               class="roleAutocomplete"
               placeholder="Role"
               :items="picks.roles"
@@ -158,6 +160,26 @@
               item-text="name"
               return-object
             >
+              <template v-slot:item="data">
+                <template>
+                  <v-avatar left class="mr-3" size="30">
+                    <v-img :src="data.item.avatar"></v-img>
+                  </v-avatar>
+                  <v-list-item-content
+                    v-text="data.item.name"
+                  ></v-list-item-content>
+                </template>
+              </template>
+              <template v-slot:selection="data">
+                <template>
+                  <v-avatar left class="mr-3" size="30">
+                    <v-img :src="data.item.avatar"></v-img>
+                  </v-avatar>
+                  <v-list-item-content
+                    v-text="data.item.name"
+                  ></v-list-item-content>
+                </template>
+              </template>
             </v-autocomplete>
             <v-switch
               v-if="configuration.source === 'personal'"
@@ -181,6 +203,7 @@
             >
             <v-autocomplete
               v-model="picks.pickStages[currentPhase[0].id - 1].godSelected"
+              disable-lookup
               placeholder="Select"
               :disabled="currentPhase[0].type != 'ban'"
               :items="gods"
@@ -251,7 +274,7 @@
                 class="text--primary mt-3 text-center"
               >
                 Hit the <b class="deep-orange--text">draft</b> button <br />
-                to see the to 10 picks!
+                to see the top picks for this phase!
               </div>
               <v-card v-show="draftSuggest.length > 0" class="mt-5">
                 <v-card-title>Suggestions</v-card-title>
@@ -318,6 +341,7 @@
           >
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].godSelected"
+              disable-lookup
               placeholder="Select a god"
               :disabled="
                 picks.pickStages[pick.id - 1].sequence > picks.current.order
@@ -354,15 +378,37 @@
             </v-autocomplete>
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].roleSelected"
+              disable-lookup
+              clearable
               class="roleAutocomplete"
               placeholder="Role"
-              :items="picks.roles"
+              :items="picks.roles.name"
               filled
               color="blue-grey lighten-2"
               label="Select"
               item-text="name"
               return-object
             >
+              <template v-slot:item="data">
+                <template>
+                  <v-avatar left class="mr-3" size="30">
+                    <v-img :src="data.item.avatar"></v-img>
+                  </v-avatar>
+                  <v-list-item-content
+                    v-text="data.item.name"
+                  ></v-list-item-content>
+                </template>
+              </template>
+              <template v-slot:selection="data">
+                <template>
+                  <v-avatar left class="mr-3" size="30">
+                    <v-img :src="data.item.avatar"></v-img>
+                  </v-avatar>
+                  <v-list-item-content
+                    v-text="data.item.name"
+                  ></v-list-item-content>
+                </template>
+              </template>
             </v-autocomplete>
             <v-switch
               v-if="configuration.source === 'personal'"
@@ -432,7 +478,28 @@ export default {
         pick: {},
         order: 1
       },
-      roles: ['support', 'carry', 'mid', 'jungle', 'solo'],
+      roles: [
+        {
+          name: 'support',
+          avatar: '/roles/guardian.png'
+        },
+        {
+          name: 'carry',
+          avatar: '/roles/hunter.png'
+        },
+        {
+          name: 'mid',
+          avatar: '/roles/mage.png'
+        },
+        {
+          name: 'jungle',
+          avatar: '/roles/assassin.png'
+        },
+        {
+          name: 'solo',
+          avatar: '/roles/warrior.png'
+        }
+      ],
       pickStages: ''
     }
   }),
@@ -499,8 +566,10 @@ export default {
         diff = this.configuration.rankings.suggestions
       }
 
+      const limitSuggestions = this.$vuetify.breakpoint.name === 'xs' ? 5 : 9
+
       return _.orderBy(diff, ['value'], ['desc']).filter((value, index) => {
-        return index <= 9
+        return index <= limitSuggestions
       })
     },
     blacklist() {
@@ -532,8 +601,9 @@ export default {
       const top = window.pageYOffset || e.target.scrollTop || 0
       this.toTopButton = top > 100
     },
-    toTop() {
+    draftToTop() {
       this.$vuetify.goTo(0)
+      this.draft()
     },
     goToScroll(element) {
       if (this.$vuetify.breakpoint.name === 'xs') {
@@ -1026,9 +1096,5 @@ export default {
     background-size: cover;
     background-position: center;
   }
-}
-#suggestions {
-  overflow-y: scroll;
-  height: 600px;
 }
 </style>
