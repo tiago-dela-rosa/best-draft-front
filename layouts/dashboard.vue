@@ -89,6 +89,12 @@ export default {
         },
         {
           id: 5,
+          title: 'Draft',
+          icon: 'mdi-lightning-bolt',
+          url: '/draft'
+        },
+        {
+          id: 6,
           title: 'Logout',
           icon: 'mdi-logout',
           url: '/login'

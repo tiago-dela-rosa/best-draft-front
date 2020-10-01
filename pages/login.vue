@@ -28,13 +28,11 @@
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
-                <v-btn @click="signin">Sign-in</v-btn>
+                <v-btn dark class="teal" @click="signin">Sign-in</v-btn>
+                <v-btn to="/draft" dark class="deep-orange">Draft</v-btn>
               </v-col>
             </v-row>
           </v-container>
-          <v-card-actions>
-            <v-btn text>Create Account</v-btn>
-          </v-card-actions>
         </v-form>
       </v-card>
     </v-container>
