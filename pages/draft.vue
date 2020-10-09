@@ -104,49 +104,96 @@
               }"
             ></li>
           </ul>
+
           <v-card
             v-for="pick in orderTeam"
             :key="pick.id"
             class="mx-auto mb-3"
             :class="{ current: pick.sequence == picks.current.order }"
           >
-            <v-autocomplete
-              v-model="picks.pickStages[pick.id - 1].godSelected"
-              disable-lookup
-              placeholder="Select a god"
-              :items="gods"
-              :disabled="
-                picks.pickStages[pick.id - 1].sequence > picks.current.order
-              "
-              chips
-              filled
-              color="blue-grey lighten-2 mb-0"
-              label="Select"
-              item-text="name"
-              return-object
-            >
-              <template v-slot:selection="data">
-                <v-chip>
-                  <v-avatar left size="30">
-                    <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
-                  </v-avatar>
-                  {{ data.item.name }}
-                </v-chip>
-              </template>
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-avatar>
-                    <img :src="`/gods/icons/${data.item.slug}.jpg`" />
-                  </v-list-item-avatar>
-                  <v-list-item-content>
-                    <v-list-item-title> {{ data.item.name }}</v-list-item-title>
-                    <v-list-item-subtitle>{{
-                      data.item.group
-                    }}</v-list-item-subtitle>
-                  </v-list-item-content>
+            <div v-if="$vuetify.breakpoint.name === 'xs'">
+              <v-select
+                v-model="picks.pickStages[pick.id - 1].godSelected"
+                placeholder="Select a god"
+                :items="gods"
+                :disabled="
+                  picks.pickStages[pick.id - 1].sequence > picks.current.order
+                "
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
                 </template>
-              </template>
-            </v-autocomplete>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ data.item.name }}</v-list-item-title
+                      >
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-select>
+            </div>
+
+            <div v-else>
+              <v-autocomplete
+                v-model="picks.pickStages[pick.id - 1].godSelected"
+                disable-lookup
+                placeholder="Select a god"
+                :items="gods"
+                :disabled="
+                  picks.pickStages[pick.id - 1].sequence > picks.current.order
+                "
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
+                </template>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ data.item.name }}</v-list-item-title
+                      >
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-autocomplete>
+            </div>
+
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].roleSelected"
               disable-lookup
@@ -339,50 +386,96 @@
             class="mx-auto mb-3"
             :class="{ current: pick.sequence == picks.current.order }"
           >
-            <v-autocomplete
-              v-model="picks.pickStages[pick.id - 1].godSelected"
-              disable-lookup
-              placeholder="Select a god"
-              :disabled="
-                picks.pickStages[pick.id - 1].sequence > picks.current.order
-              "
-              :items="gods"
-              chips
-              filled
-              color="blue-grey lighten-2 mb-0"
-              label="Select"
-              item-text="name"
-              return-object
-            >
-              <template v-slot:selection="data">
-                <v-chip>
-                  <v-avatar left size="30">
-                    <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
-                  </v-avatar>
-                  {{ data.item.name }}
-                </v-chip>
-              </template>
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-avatar>
-                    <img :src="`/gods/icons/${data.item.slug}.jpg`" />
-                  </v-list-item-avatar>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ data.item.name }}</v-list-item-title>
-                    <v-list-item-subtitle>{{
-                      data.item.group
-                    }}</v-list-item-subtitle>
-                  </v-list-item-content>
+            <div v-if="$vuetify.breakpoint.name === 'xs'">
+              <v-select
+                v-model="picks.pickStages[pick.id - 1].godSelected"
+                placeholder="Select a god"
+                :items="gods"
+                :disabled="
+                  picks.pickStages[pick.id - 1].sequence > picks.current.order
+                "
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
                 </template>
-              </template>
-            </v-autocomplete>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ data.item.name }}</v-list-item-title
+                      >
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-select>
+            </div>
+
+            <div v-else>
+              <v-autocomplete
+                v-model="picks.pickStages[pick.id - 1].godSelected"
+                disable-lookup
+                placeholder="Select a god"
+                :items="gods"
+                :disabled="
+                  picks.pickStages[pick.id - 1].sequence > picks.current.order
+                "
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
+                </template>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ data.item.name }}</v-list-item-title
+                      >
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-autocomplete>
+            </div>
+
             <v-autocomplete
               v-model="picks.pickStages[pick.id - 1].roleSelected"
               disable-lookup
               clearable
               class="roleAutocomplete"
               placeholder="Role"
-              :items="picks.roles.name"
+              :items="picks.roles"
               filled
               color="blue-grey lighten-2"
               label="Select"
@@ -410,6 +503,7 @@
                 </template>
               </template>
             </v-autocomplete>
+
             <v-switch
               v-if="configuration.source === 'personal'"
               class="userPickSwitch"
@@ -817,9 +911,9 @@ export default {
       const opposingTeamRoles = []
       this.picks.pickStages.map((stage) => {
         if (this.currentPhase[0].team === stage.team) {
-          teamRoles.push(stage.roleSelected)
+          teamRoles.push(stage.roleSelected?.name)
         } else {
-          opposingTeamRoles.push(stage.roleSelected)
+          opposingTeamRoles.push(stage.roleSelected?.name)
         }
       })
       const difference = teamRoles.filter((x) => !opposingTeamRoles.includes(x))
@@ -843,15 +937,15 @@ export default {
       ) {
         if (
           (this.currentPhase[0].team === 'order' &&
-            this.orderTeam[0].roleSelected) ||
+            this.orderTeam[0].roleSelected?.name) ||
           (this.currentPhase[0].team === 'chaos' &&
-            this.chaosTeam[0].roleSelected)
+            this.chaosTeam[0].roleSelected?.name)
         ) {
           this.debugRules('-> rulePreserveFirstPick')
           const roleFirstPick =
             this.configuration.order === 'first'
-              ? this.orderTeam[0].roleSelected
-              : this.chaosTeam[0].roleSelected
+              ? this.orderTeam[0].roleSelected?.name
+              : this.chaosTeam[0].roleSelected?.name
           _.mapValues(this.configuration.rankings.suggestions, (rank) => {
             return Object.assign(rank, {
               value:
@@ -864,10 +958,10 @@ export default {
     ruleRolePick(weigth) {
       if (
         this.currentPhase[0].type === 'pick' &&
-        this.currentPhase[0].roleSelected
+        this.currentPhase[0].roleSelected?.name
       ) {
         this.debugRules('-> ruleRolePick')
-        const rolePicked = this.currentPhase[0].roleSelected
+        const rolePicked = this.currentPhase[0].roleSelected?.name
         _.mapValues(this.configuration.rankings.suggestions, (rank) => {
           return Object.assign(rank, {
             value: rank.value + this.gods[rank.id - 1].role[rolePicked] * weigth
