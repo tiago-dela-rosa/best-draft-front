@@ -194,7 +194,7 @@
               </v-autocomplete>
             </div>
 
-            <v-autocomplete
+            <v-select
               v-model="picks.pickStages[pick.id - 1].roleSelected"
               disable-lookup
               clearable
@@ -227,7 +227,7 @@
                   ></v-list-item-content>
                 </template>
               </template>
-            </v-autocomplete>
+            </v-select>
             <v-switch
               v-if="configuration.source === 'personal'"
               v-model="picks.pickStages[pick.id - 1].playerSelect"
@@ -248,46 +248,96 @@
               </b>
               turn - {{ currentPhase[0].type }} phase</v-card-title
             >
-            <v-autocomplete
-              v-model="picks.pickStages[currentPhase[0].id - 1].godSelected"
-              disable-lookup
-              placeholder="Select"
-              :disabled="currentPhase[0].type != 'ban'"
-              :items="gods"
-              chips
-              filled
-              color="blue-grey lighten-2 mb-0"
-              label="Select"
-              item-text="name"
-              return-object
-              @change="
-                $vuetify.breakpoint.name === 'xs'
-                  ? $vuetify.goTo(`#${currentPhase[0].team}`)
-                  : ''
-              "
-            >
-              <template v-slot:selection="data">
-                <v-chip>
-                  <v-avatar left size="30">
-                    <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
-                  </v-avatar>
-                  {{ data.item.name }}
-                </v-chip>
-              </template>
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-avatar>
-                    <img :src="`/gods/icons/${data.item.slug}.jpg`" />
-                  </v-list-item-avatar>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ data.item.name }}</v-list-item-title>
-                    <v-list-item-subtitle>{{
-                      data.item.group
-                    }}</v-list-item-subtitle>
-                  </v-list-item-content>
+
+            <div v-if="$vuetify.breakpoint.name === 'xs'">
+              <v-select
+                v-model="picks.pickStages[currentPhase[0].id - 1].godSelected"
+                disable-lookup
+                placeholder="Select"
+                :disabled="currentPhase[0].type != 'ban'"
+                :items="gods"
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+                @change="
+                  $vuetify.breakpoint.name === 'xs'
+                    ? $vuetify.goTo(`#${currentPhase[0].team}`)
+                    : ''
+                "
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
                 </template>
-              </template>
-            </v-autocomplete>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>{{
+                        data.item.name
+                      }}</v-list-item-title>
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-select>
+            </div>
+
+            <div v-else>
+              <v-autocomplete
+                v-model="picks.pickStages[currentPhase[0].id - 1].godSelected"
+                disable-lookup
+                placeholder="Select"
+                :disabled="currentPhase[0].type != 'ban'"
+                :items="gods"
+                chips
+                filled
+                color="blue-grey lighten-2 mb-0"
+                label="Select"
+                item-text="name"
+                return-object
+                @change="
+                  $vuetify.breakpoint.name === 'xs'
+                    ? $vuetify.goTo(`#${currentPhase[0].team}`)
+                    : ''
+                "
+              >
+                <template v-slot:selection="data">
+                  <v-chip>
+                    <v-avatar left size="30">
+                      <v-img :src="`/gods/icons/${data.item.slug}.jpg`"></v-img>
+                    </v-avatar>
+                    {{ data.item.name }}
+                  </v-chip>
+                </template>
+                <template v-slot:item="data">
+                  <template>
+                    <v-list-item-avatar>
+                      <img :src="`/gods/icons/${data.item.slug}.jpg`" />
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>{{
+                        data.item.name
+                      }}</v-list-item-title>
+                      <v-list-item-subtitle>{{
+                        data.item.group
+                      }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </template>
+              </v-autocomplete>
+            </div>
           </v-card>
           <v-row>
             <v-col cols="6">
@@ -469,7 +519,7 @@
               </v-autocomplete>
             </div>
 
-            <v-autocomplete
+            <v-select
               v-model="picks.pickStages[pick.id - 1].roleSelected"
               disable-lookup
               clearable
@@ -502,7 +552,7 @@
                   ></v-list-item-content>
                 </template>
               </template>
-            </v-autocomplete>
+            </v-select>
 
             <v-switch
               v-if="configuration.source === 'personal'"
@@ -752,7 +802,7 @@ export default {
     },
     getGods() {
       return this.$axios.$get('/gods').then((data) => {
-        this.gods = Object.values(data)
+        this.gods = _.orderBy(Object.values(data), [(god) => god.name], ['asc'])
       })
     },
     serviceTierlistByUser() {
