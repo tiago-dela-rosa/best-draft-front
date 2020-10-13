@@ -802,7 +802,7 @@ export default {
     },
     getGods() {
       return this.$axios.$get('/gods').then((data) => {
-        this.gods = _.orderBy(Object.values(data), [(god) => god.name], ['asc'])
+        this.gods = Object.values(data)
       })
     },
     serviceTierlistByUser() {
