@@ -115,7 +115,7 @@
               <v-select
                 v-model="picks.pickStages[pick.id - 1].godSelected"
                 placeholder="Select a god"
-                :items="gods"
+                :items="sortedGods"
                 :disabled="
                   picks.pickStages[pick.id - 1].sequence > picks.current.order
                 "
@@ -157,7 +157,7 @@
                 v-model="picks.pickStages[pick.id - 1].godSelected"
                 disable-lookup
                 placeholder="Select a god"
-                :items="gods"
+                :items="sortedGods"
                 :disabled="
                   picks.pickStages[pick.id - 1].sequence > picks.current.order
                 "
@@ -255,7 +255,7 @@
                 disable-lookup
                 placeholder="Select"
                 :disabled="currentPhase[0].type != 'ban'"
-                :items="gods"
+                :items="sortedGods"
                 chips
                 filled
                 color="blue-grey lighten-2 mb-0"
@@ -300,7 +300,7 @@
                 disable-lookup
                 placeholder="Select"
                 :disabled="currentPhase[0].type != 'ban'"
-                :items="gods"
+                :items="sortedGods"
                 chips
                 filled
                 color="blue-grey lighten-2 mb-0"
@@ -440,7 +440,7 @@
               <v-select
                 v-model="picks.pickStages[pick.id - 1].godSelected"
                 placeholder="Select a god"
-                :items="gods"
+                :items="sortedGods"
                 :disabled="
                   picks.pickStages[pick.id - 1].sequence > picks.current.order
                 "
@@ -482,7 +482,7 @@
                 v-model="picks.pickStages[pick.id - 1].godSelected"
                 disable-lookup
                 placeholder="Select a god"
-                :items="gods"
+                :items="sortedGods"
                 :disabled="
                   picks.pickStages[pick.id - 1].sequence > picks.current.order
                 "
@@ -648,6 +648,11 @@ export default {
     }
   }),
   computed: {
+    sortedGods: {
+      get() {
+        return _.orderBy(this.gods, [(god) => god.name.toLowerCase()], ['asc'])
+      }
+    },
     tierlistUid: {
       get() {
         return this.getStorageConfig().personal.tierlist || null
