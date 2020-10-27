@@ -363,7 +363,13 @@
               >
             </v-col>
             <v-col cols="12">
-              <v-btn width="100%" dark color="deep-orange" @click="draft()">
+              <v-btn
+                width="100%"
+                :loading="isBtnDraftLoading"
+                dark
+                color="deep-orange"
+                @click="draft()"
+              >
                 <v-icon left>mdi-lightning-bolt</v-icon> Draft
               </v-btn>
               <div
@@ -583,6 +589,7 @@ export default {
     Touch
   },
   data: () => ({
+    isBtnDraftLoading: false,
     toTopButton: false,
     loadingDraft: false,
     gods: [],
@@ -735,6 +742,9 @@ export default {
           return _.isUndefined(blacklist[key])
         })
       )
+    },
+    userLogged() {
+      return JSON.parse(localStorage.getItem('user'))
     }
   },
   watch: {},
@@ -927,12 +937,20 @@ export default {
           return response.data.data
         })
     },
-    servicePreference() {
+    async servicePreferenceByUser() {
+      const { user } = this.userLogged
+
+      const userPreference = await this.$axios.$get(
+        `/preference/user/${user.uid}`,
+        this.handleToken()
+      )
+      return userPreference.data[0].uid
+    },
+    async servicePreference() {
+      const uidPreference = await this.servicePreferenceByUser()
+
       return this.$axios
-        .$get(
-          '/preference/7abf2e45-919f-4778-ba92-a90432ee980c',
-          this.handleToken()
-        )
+        .$get(`/preference/${uidPreference}`, this.handleToken())
         .then((response) => {
           return response.data[0].data
         })
@@ -1149,24 +1167,28 @@ export default {
       }
     },
     draft() {
-      this.debugRules('----- BEGIN -----')
-      this.loadingDraft = true
-      this.setTierlist()
-      this.ruleTierlist()
-        .then(
-          this.rulePreservePreferencePick(
-            this.configuration.weigths.rulePreferencePick
+      if (!this.isBtnDraftLoading) {
+        this.isBtnDraftLoading = true
+        this.debugRules('----- BEGIN -----')
+        this.setTierlist()
+        this.ruleTierlist()
+          .then(
+            this.rulePreservePreferencePick(
+              this.configuration.weigths.rulePreferencePick
+            )
           )
-        )
-        .then(
-          this.rulePreferencePick(this.configuration.weigths.rulePreferencePick)
-        )
-        .then(this.ruleRolePick(2.25))
-        .then(this.ruleMatchupPick(1.7))
-        .then(this.ruleTeammatePick(1))
-        .then(this.ruleSecondBanPhase(1.7))
-        .then(() => (this.loadingDraft = false))
-        .then(this.debugRules('----- END -----'))
+          .then(
+            this.rulePreferencePick(
+              this.configuration.weigths.rulePreferencePick
+            )
+          )
+          .then(this.ruleRolePick(2.25))
+          .then(this.ruleMatchupPick(1.7))
+          .then(this.ruleTeammatePick(1))
+          .then(this.ruleSecondBanPhase(1.7))
+          .then(() => (this.isBtnDraftLoading = false))
+          .then(this.debugRules('----- END -----'))
+      }
     }
   }
 }
